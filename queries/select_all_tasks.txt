@@ -1,0 +1,6 @@
+-- Select all tasks ordered by ID
+-- Used in: utils/save_helper.py - load_tasks()
+
+SELECT id, title, status, description 
+FROM todos 
+ORDER BY id

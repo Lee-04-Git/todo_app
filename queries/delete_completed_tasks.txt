@@ -1,0 +1,5 @@
+-- Delete all completed tasks (status = 'done')
+-- Used in: utils/delete_helper.py - clear_completed_tasks()
+
+DELETE FROM todos 
+WHERE status = 'done'
