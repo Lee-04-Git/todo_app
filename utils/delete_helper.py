@@ -17,11 +17,12 @@ def delete_task(task_id):
         bool: True if deletion was successful, False otherwise
     """
     try:
-        with sqlite3.connect(get_db_path()) as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM todos WHERE id = ?", (task_id,))
-            conn.commit()
-            return cursor.rowcount > 0  # Returns True if a row was deleted
+        conn = sqlite3.connect(get_db_path(), isolation_level=None)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM todos WHERE id = ?", (task_id,))
+        row_count = cursor.rowcount
+        conn.close()
+        return row_count > 0  # Returns True if a row was deleted
     except sqlite3.Error as e:
         print(f"Error deleting task: {e}")
         return False
@@ -34,11 +35,12 @@ def clear_completed_tasks():
         int: Number of tasks deleted
     """
     try:
-        with sqlite3.connect(get_db_path()) as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM todos WHERE status = 'done'")
-            conn.commit()
-            return cursor.rowcount  # Returns number of deleted rows
+        conn = sqlite3.connect(get_db_path(), isolation_level=None)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM todos WHERE status = 'done'")
+        row_count = cursor.rowcount
+        conn.close()
+        return row_count  # Returns number of deleted rows
     except sqlite3.Error as e:
         print(f"Error clearing completed tasks: {e}")
         return 0

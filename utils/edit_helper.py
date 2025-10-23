@@ -29,34 +29,36 @@ def edit_task(task_id, title=None, status=None, description=None):
             return False
     
     try:
-        with sqlite3.connect(get_db_path()) as conn:
-            cursor = conn.cursor()
-            
-            # Build dynamic UPDATE query based on provided fields
-            updates = []
-            params = []
-            
-            if title is not None:
-                updates.append("title = ?")
-                params.append(title.strip())
-            
-            if status is not None:
-                updates.append("status = ?")
-                params.append(status)
-            
-            if description is not None:
-                updates.append("description = ?")
-                params.append(description.strip())
-            
-            if not updates:
-                return False
-            
-            params.append(task_id)
-            query = f"UPDATE todos SET {', '.join(updates)} WHERE id = ?"
-            
-            cursor.execute(query, params)
-            conn.commit()
-            return cursor.rowcount > 0
+        conn = sqlite3.connect(get_db_path(), isolation_level=None)
+        cursor = conn.cursor()
+        
+        # Build dynamic UPDATE query based on provided fields
+        updates = []
+        params = []
+        
+        if title is not None:
+            updates.append("title = ?")
+            params.append(title.strip())
+        
+        if status is not None:
+            updates.append("status = ?")
+            params.append(status)
+        
+        if description is not None:
+            updates.append("description = ?")
+            params.append(description.strip())
+        
+        if not updates:
+            conn.close()
+            return False
+        
+        params.append(task_id)
+        query = f"UPDATE todos SET {', '.join(updates)} WHERE id = ?"
+        
+        cursor.execute(query, params)
+        row_count = cursor.rowcount
+        conn.close()
+        return row_count > 0
     except sqlite3.Error as e:
         print(f"Error editing task: {e}")
         return False

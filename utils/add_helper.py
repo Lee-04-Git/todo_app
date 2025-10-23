@@ -29,14 +29,15 @@ def add_task(title, status='todo', description=''):
     init_database()  # Ensure database exists
     
     try:
-        with sqlite3.connect(get_db_path()) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO todos (title, status, description) VALUES (?, ?, ?)",
-                (title.strip(), status, description.strip())
-            )
-            conn.commit()
-            return cursor.lastrowid
+        conn = sqlite3.connect(get_db_path(), isolation_level=None)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO todos (title, status, description) VALUES (?, ?, ?)",
+            (title.strip(), status, description.strip())
+        )
+        task_id = cursor.lastrowid
+        conn.close()
+        return task_id
     except sqlite3.Error as e:
         print(f"Error adding task: {e}")
         return None
