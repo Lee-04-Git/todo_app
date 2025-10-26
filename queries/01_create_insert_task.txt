@@ -1,0 +1,13 @@
+-- ============================================
+-- CREATE: Insert new task
+-- ============================================
+-- Used in: utils/add_helper.py - add_task()
+-- When: User clicks "Add Task" button in GUI
+-- ============================================
+
+INSERT INTO todos (title, status, description)
+VALUES (?, ?, ?);
+-- Parameters:
+-- ? = title (TEXT) - Task name
+-- ? = status (TEXT) - 'todo', 'doing', or 'done'
+-- ? = description (TEXT) - Task details

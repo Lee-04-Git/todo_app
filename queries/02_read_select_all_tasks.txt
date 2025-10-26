@@ -1,0 +1,13 @@
+-- ============================================
+-- READ: Get all tasks
+-- ============================================
+-- Used in: utils/save_helper.py - load_tasks()
+-- When: Application loads or refreshes task list
+-- ============================================
+SELECT id,
+    title,
+    status,
+    description
+FROM todos
+ORDER BY id;
+-- Returns all tasks sorted by ID (oldest first)

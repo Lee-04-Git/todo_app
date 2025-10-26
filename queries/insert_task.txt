@@ -1,5 +1,0 @@
--- Insert a new task
--- Used in: utils/add_helper.py - add_task()
-
-INSERT INTO todos (title, status, description) 
-VALUES (?, ?, ?)

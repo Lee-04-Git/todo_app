@@ -1,0 +1,19 @@
+-- ============================================
+-- SETUP: Create todos table
+-- ============================================
+-- Used in: utils/save_helper.py - init_database()
+-- When: Application startup (runs once if table doesn't exist)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS todos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    status TEXT DEFAULT 'todo',
+    description TEXT DEFAULT ''
+);
+
+-- Table columns:
+-- id          = Unique task number (auto-generated)
+-- title       = Task name (required)
+-- status      = 'todo', 'doing', or 'done'
+-- description = Extra details about the task

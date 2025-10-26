@@ -7,6 +7,18 @@
   "files.associations": {
     "*.db": "sqlite",
     "*.sqlite": "sqlite",
-    "*.sqlite3": "sqlite"
-  }
+    "*.sqlite3": "sqlite",
+    "**/queries/0*.txt": "sql",
+    "**/queries/README.txt": "markdown"
+  },
+  "editor.occurrencesHighlight": "off",
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "database": "C:/Users/leema_bq6sl8p/OneDrive/Desktop/todo_app/data/todo.db",
+      "name": "TodoDB_Test"
+    }
+  ],
+  "sqltools.useNodeRuntime": true
 }

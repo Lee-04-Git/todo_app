@@ -1,0 +1,10 @@
+-- ============================================
+-- DELETE: Remove one task
+-- ============================================
+-- Used in: utils/delete_helper.py - delete_task()
+-- When: User selects a task and clicks "Delete Task"
+-- ============================================
+DELETE FROM todos
+WHERE id = ?;
+-- Parameter:
+-- ? = id (INTEGER) - The task ID to delete

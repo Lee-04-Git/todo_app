@@ -1,5 +1,0 @@
--- Delete a task by ID
--- Used in: utils/delete_helper.py - delete_task()
-
-DELETE FROM todos 
-WHERE id = ?

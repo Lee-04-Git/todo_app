@@ -1,0 +1,26 @@
+-- ============================================
+-- UPDATE: Modify existing task
+-- ============================================
+-- Used in: utils/edit_helper.py - edit_task()
+-- Used in: utils/edit_helper.py - change_task_status()
+-- When: User edits task or changes status
+-- ============================================
+-- Update all fields:
+UPDATE todos
+SET title = ?,
+    status = ?,
+    description = ?
+WHERE id = ?;
+-- Update only status (when changing todo/doing/done):
+UPDATE todos
+SET status = ?
+WHERE id = ?;
+-- Update only title:
+UPDATE todos
+SET title = ?
+WHERE id = ?;
+-- Update only description:
+UPDATE todos
+SET description = ?
+WHERE id = ?;
+-- Note: The app builds the query dynamically based on which fields changed

@@ -1,6 +1,0 @@
--- Check if todos table exists
--- Used in: utils/save_helper.py - init_database() for migration check
-
-SELECT name 
-FROM sqlite_master 
-WHERE type='table' AND name='todos'

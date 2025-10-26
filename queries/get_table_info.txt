@@ -1,4 +1,0 @@
--- Get table structure information
--- Used in: utils/save_helper.py - init_database() for schema migration
-
-PRAGMA table_info(todos)

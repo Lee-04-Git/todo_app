@@ -1,0 +1,9 @@
+{
+  "connections": [
+    {
+      "name": "todo_database",
+      "database": "${workspaceFolder}/data/todo.db",
+      "driver": "SQLite"
+    }
+  ]
+}

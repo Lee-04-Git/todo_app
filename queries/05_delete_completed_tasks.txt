@@ -1,0 +1,9 @@
+-- ============================================
+-- DELETE: Remove all completed tasks
+-- ============================================
+-- Used in: utils/delete_helper.py - clear_completed_tasks()
+-- When: User clicks "Clear Done" button in GUI
+-- ============================================
+DELETE FROM todos
+WHERE status = 'done';
+-- Deletes all tasks marked as 'done'

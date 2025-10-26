@@ -1,4 +1,0 @@
--- Drop todos table (used during migration)
--- Used in: utils/save_helper.py - init_database() when old schema detected
-
-DROP TABLE todos
