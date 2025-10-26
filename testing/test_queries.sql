@@ -18,20 +18,20 @@ VALUES ('Test Task 2', 'doing', 'This is a test task take two');
 -- Change task ID 1 to 'doing'
 UPDATE todos
 SET status = 'doing'
-WHERE id = 1;
+WHERE id = 17;
 
 -- TEST 4: Update all fields (MODIFIES DATA)
 -- Update task ID 1 completely
 UPDATE todos
-SET title = 'Updated Task',
+SET title = 'Lee is done',
     status = 'done',
-    description = 'Task has been updated'
-WHERE id = 1;
+    description = 'yo'
+WHERE id = 18;
 
 -- TEST 5: Delete a specific task (DELETES DATA)
 -- Delete task ID 999 (safe - probably doesn't exist)
 DELETE FROM todos
-WHERE id = 999;
+WHERE id = 17;
 
 -- TEST 6: Delete all completed tasks (DELETES DATA)
 -- WARNING: This removes all 'done' tasks

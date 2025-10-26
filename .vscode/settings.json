@@ -16,8 +16,8 @@
     {
       "previewLimit": 50,
       "driver": "SQLite",
-      "database": "C:/Users/leema_bq6sl8p/OneDrive/Desktop/todo_app/data/todo.db",
-      "name": "TodoDB_Test"
+      "name": "TestQueryInTodoDB",
+      "database": "todo.db"
     }
   ],
   "sqltools.useNodeRuntime": true
