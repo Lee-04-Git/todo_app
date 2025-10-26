@@ -114,10 +114,11 @@ class TodoGUI:
         # Action buttons
         button_config = [
             ("➕ Add Task", self.add_task_dialog, self.colors['success']),
+            ("👁️ View Details", self.view_task_dialog, self.colors['accent']),
             ("✏️ Edit Task", self.edit_task_dialog, self.colors['accent']),
             ("🔄 Change Status", self.change_status_dialog, self.colors['warning']),
             ("🗑️ Delete Task", self.delete_task_dialog, self.colors['danger']),
-            ("🧹 Clear Done", self.clear_completed_dialog, self.colors['text_dark'])
+            ("🧹 Clear Completed", self.clear_completed_dialog, '#95a5a6')
         ]
         
         for text, command, color in button_config:
@@ -163,6 +164,39 @@ class TodoGUI:
                            bg=color, fg='white')
             label.pack()
             self.stat_labels[status] = label
+        
+        # Search and filter bar
+        filter_frame = tk.Frame(parent, bg=self.colors['bg'])
+        filter_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        # Search box
+        search_container = tk.Frame(filter_frame, bg=self.colors['card'],
+                                   highlightbackground=self.colors['border'], highlightthickness=1)
+        search_container.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+        
+        tk.Label(search_container, text="🔍", font=('Segoe UI', 12),
+                bg=self.colors['card']).pack(side=tk.LEFT, padx=(10, 5))
+        
+        self.search_var = tk.StringVar()
+        self.search_var.trace('w', lambda *args: self.apply_filters())
+        search_entry = tk.Entry(search_container, textvariable=self.search_var,
+                               font=('Segoe UI', 10), relief=tk.FLAT,
+                               bg=self.colors['card'], fg=self.colors['text_dark'])
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6, padx=(0, 10))
+        
+        # Filter dropdown
+        tk.Label(filter_frame, text="Filter:", font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg'], fg=self.colors['text_dark']).pack(side=tk.LEFT, padx=(0, 5))
+        
+        self.filter_var = tk.StringVar(value="all")
+        filter_options = [("All", "all"), ("⏳ Todo", "todo"), ("🔄 Doing", "doing"), ("✅ Done", "done")]
+        
+        for text, value in filter_options:
+            rb = tk.Radiobutton(filter_frame, text=text, variable=self.filter_var, value=value,
+                               font=('Segoe UI', 9), bg=self.colors['bg'],
+                               selectcolor=self.colors['bg'], activebackground=self.colors['bg'],
+                               cursor='hand2', command=self.apply_filters)
+            rb.pack(side=tk.LEFT, padx=5)
     
     def setup_task_list(self, parent):
         """Set up the task list display using Treeview."""
@@ -208,6 +242,9 @@ class TodoGUI:
         self.task_tree.tag_configure('todo', foreground=self.colors['warning'])
         self.task_tree.tag_configure('doing', foreground=self.colors['accent'])
         self.task_tree.tag_configure('done', foreground=self.colors['success'])
+        
+        # Bind double-click to view details
+        self.task_tree.bind('<Double-Button-1>', lambda e: self.view_task_dialog())
     
     def setup_status_bar(self, parent):
         """Create modern status bar."""
@@ -224,15 +261,50 @@ class TodoGUI:
     
     def refresh_tasks(self):
         """Reload tasks from database and update the display."""
+        # Load all tasks from database
+        self.all_tasks = load_tasks()
+        
+        # Apply current filters
+        self.apply_filters()
+        
+        # Update status bar and badges with all tasks
+        total_tasks = len(self.all_tasks)
+        todo_tasks = sum(1 for task in self.all_tasks if task["status"] == "todo")
+        doing_tasks = sum(1 for task in self.all_tasks if task["status"] == "doing")
+        done_tasks = sum(1 for task in self.all_tasks if task["status"] == "done")
+        
+        self.status_var.set(f"📊 Total Tasks: {total_tasks}  |  Completed: {done_tasks}/{total_tasks}")
+        
+        # Update header badges
+        self.stat_labels['todo'].config(text=f"TODO: {todo_tasks}")
+        self.stat_labels['doing'].config(text=f"DOING: {doing_tasks}")
+        self.stat_labels['done'].config(text=f"DONE: {done_tasks}")
+    
+    def apply_filters(self):
+        """Apply search and status filters to the task list."""
         # Clear existing items
         for item in self.task_tree.get_children():
             self.task_tree.delete(item)
         
-        # Load tasks from database
-        tasks = load_tasks()
+        # Get filter values
+        search_text = self.search_var.get().lower() if hasattr(self, 'search_var') else ""
+        status_filter = self.filter_var.get() if hasattr(self, 'filter_var') else "all"
         
-        # Add tasks to treeview with alternating colors and status tags
-        for idx, task in enumerate(tasks):
+        # Filter tasks
+        filtered_tasks = self.all_tasks if hasattr(self, 'all_tasks') else load_tasks()
+        
+        # Apply status filter
+        if status_filter != "all":
+            filtered_tasks = [t for t in filtered_tasks if t["status"] == status_filter]
+        
+        # Apply search filter
+        if search_text:
+            filtered_tasks = [t for t in filtered_tasks 
+                            if search_text in t["title"].lower() 
+                            or search_text in t["description"].lower()]
+        
+        # Add filtered tasks to treeview
+        for idx, task in enumerate(filtered_tasks):
             status_display = task["status"].upper()
             status_emoji = {'TODO': '⏳', 'DOING': '🔄', 'DONE': '✅'}
             status_text = f"{status_emoji.get(status_display, '')} {status_display}"
@@ -245,19 +317,6 @@ class TodoGUI:
             self.task_tree.insert("", tk.END, 
                                 values=(task["id"], task["title"], status_text, desc_preview),
                                 tags=(row_tag, status_tag))
-        
-        # Update status bar and badges
-        total_tasks = len(tasks)
-        todo_tasks = sum(1 for task in tasks if task["status"] == "todo")
-        doing_tasks = sum(1 for task in tasks if task["status"] == "doing")
-        done_tasks = sum(1 for task in tasks if task["status"] == "done")
-        
-        self.status_var.set(f"📊 Total Tasks: {total_tasks}  |  Completed: {done_tasks}/{total_tasks}")
-        
-        # Update header badges
-        self.stat_labels['todo'].config(text=f"TODO: {todo_tasks}")
-        self.stat_labels['doing'].config(text=f"DOING: {doing_tasks}")
-        self.stat_labels['done'].config(text=f"DONE: {done_tasks}")
     
     def get_selected_task_id(self):
         """Get the ID of the currently selected task."""
@@ -559,6 +618,87 @@ class TodoGUI:
                             activebackground=self._darken_color(self.colors['warning']))
         save_btn.pack(side=tk.RIGHT)
     
+    def view_task_dialog(self):
+        """Show full task details in a read-only dialog."""
+        task_id = self.get_selected_task_id()
+        if task_id is None:
+            return
+        
+        # Get current task data
+        tasks = load_tasks()
+        current_task = next((t for t in tasks if t["id"] == task_id), None)
+        if not current_task:
+            messagebox.showerror("Error", "Task not found.")
+            return
+        
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Task Details")
+        dialog.geometry("550x500")
+        dialog.resizable(False, False)
+        dialog.configure(bg=self.colors['bg'])
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Main container
+        container = tk.Frame(dialog, bg=self.colors['bg'])
+        container.pack(fill=tk.BOTH, expand=True, padx=25, pady=25)
+        
+        # Header
+        tk.Label(container, text="👁️ Task Details", font=('Segoe UI', 16, 'bold'),
+                bg=self.colors['bg'], fg=self.colors['text_dark']).pack(anchor='w', pady=(0, 20))
+        
+        # Task ID
+        id_frame = tk.Frame(container, bg=self.colors['card'],
+                           highlightbackground=self.colors['border'], highlightthickness=1)
+        id_frame.pack(fill=tk.X, pady=(0, 10))
+        tk.Label(id_frame, text=f"ID: {current_task['id']}", font=('Segoe UI', 10),
+                bg=self.colors['card'], fg=self.colors['text_dark']).pack(anchor='w', padx=15, pady=8)
+        
+        # Title
+        tk.Label(container, text="Task Title", font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg'], fg=self.colors['text_dark']).pack(anchor='w', pady=(0, 5))
+        title_frame = tk.Frame(container, bg=self.colors['card'],
+                              highlightbackground=self.colors['border'], highlightthickness=1)
+        title_frame.pack(fill=tk.X, pady=(0, 15))
+        tk.Label(title_frame, text=current_task["title"], font=('Segoe UI', 11),
+                bg=self.colors['card'], fg=self.colors['text_dark'],
+                wraplength=480, justify='left').pack(anchor='w', padx=15, pady=12)
+        
+        # Status
+        tk.Label(container, text="Status", font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg'], fg=self.colors['text_dark']).pack(anchor='w', pady=(0, 5))
+        status_frame = tk.Frame(container, bg=self.colors['card'],
+                               highlightbackground=self.colors['border'], highlightthickness=1)
+        status_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        status_colors = {'todo': self.colors['warning'], 'doing': self.colors['accent'], 'done': self.colors['success']}
+        status_emoji = {'todo': '⏳', 'doing': '🔄', 'done': '✅'}
+        status_text = f"{status_emoji[current_task['status']]} {current_task['status'].upper()}"
+        
+        tk.Label(status_frame, text=status_text, font=('Segoe UI', 11, 'bold'),
+                bg=self.colors['card'], fg=status_colors[current_task['status']]).pack(anchor='w', padx=15, pady=12)
+        
+        # Description
+        tk.Label(container, text="Description", font=('Segoe UI', 10, 'bold'),
+                bg=self.colors['bg'], fg=self.colors['text_dark']).pack(anchor='w', pady=(0, 5))
+        desc_frame = tk.Frame(container, bg=self.colors['card'],
+                             highlightbackground=self.colors['border'], highlightthickness=1)
+        desc_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        
+        desc_text = tk.Text(desc_frame, font=('Segoe UI', 10), relief=tk.FLAT,
+                           bg=self.colors['card'], fg=self.colors['text_dark'],
+                           height=8, wrap=tk.WORD, state=tk.NORMAL)
+        desc_text.insert("1.0", current_task["description"] if current_task["description"] else "(No description)")
+        desc_text.config(state=tk.DISABLED)
+        desc_text.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        
+        # Close button
+        close_btn = tk.Button(container, text="Close", command=dialog.destroy,
+                             bg=self.colors['accent'], fg='white', font=('Segoe UI', 11),
+                             bd=0, padx=30, pady=12, cursor='hand2',
+                             activebackground=self._darken_color(self.colors['accent']))
+        close_btn.pack(pady=(10, 0))
+    
     def delete_task_dialog(self):
         """Delete the selected task with confirmation."""
         task_id = self.get_selected_task_id()
@@ -580,14 +720,25 @@ class TodoGUI:
                 messagebox.showerror("Error", "Failed to delete task.")
     
     def clear_completed_dialog(self):
-        """Clear all completed (done) tasks with confirmation."""
-        result = messagebox.askyesno("Confirm Clear", 
-                                   "Are you sure you want to delete all tasks with 'Done' status?")
+        """Clear all completed tasks with confirmation."""
+        # Count completed tasks
+        tasks = load_tasks()
+        completed_count = sum(1 for task in tasks if task["status"] == "done")
+        
+        if completed_count == 0:
+            messagebox.showinfo("No Completed Tasks", "There are no completed tasks to clear.")
+            return
+        
+        result = messagebox.askyesno("Confirm Clear Completed", 
+                                   f"Are you sure you want to delete all {completed_count} completed task(s)?")
         
         if result:
             deleted_count = clear_completed_tasks()
-            self.refresh_tasks()
-            messagebox.showinfo("Success", f"Cleared {deleted_count} completed tasks.")
+            if deleted_count > 0:
+                self.refresh_tasks()
+                messagebox.showinfo("Success", f"✅ Cleared {deleted_count} completed task(s).")
+            else:
+                messagebox.showerror("Error", "Failed to clear completed tasks.")
 
 
 def run_gui():
