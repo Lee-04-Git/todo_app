@@ -23,9 +23,9 @@ WHERE id = 17;
 -- TEST 4: Update all fields (MODIFIES DATA)
 -- Update task ID 1 completely
 UPDATE todos
-SET title = 'Lee is done',
+SET title = 'test this task',
     status = 'done',
-    description = 'yo'
+    description = 'test'
 WHERE id = 18;
 
 -- TEST 5: Delete a specific task (DELETES DATA)
